@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "dgSpecHash": "UnmJsd0zcdg=",
+  "success": true,
+  "projectFilePath": "/Users/derrick/RiderProjects/RadioApi/RadioApi/RadioApi.csproj",
+  "expectedPackageFiles": [
+    "/Users/derrick/.nuget/packages/microsoft.aspnetcore.openapi/10.0.1/microsoft.aspnetcore.openapi.10.0.1.nupkg.sha512",
+    "/Users/derrick/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512",
+    "/Users/derrick/.nuget/packages/system.text.json/8.0.5/system.text.json.8.0.5.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "projectPath": "/Users/derrick/RiderProjects/RadioApi/RadioApi/RadioApi.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/derrick/RiderProjects/RadioApi/RadioApi/RadioApi.csproj",
+      "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}
