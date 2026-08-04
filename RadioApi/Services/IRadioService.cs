@@ -13,6 +13,8 @@ public interface IRadioService
         int limit = 20, int offset = 0);
 
     public Task<List<Tag>> GetAllTags(int limit, int offset);
+    
+    public Task<RadioStation?> GetStationByUuid(string uuid);
 }
 
 public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioService
@@ -91,7 +93,18 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
         var requestUrl = $"{baseUrl}json/tags?limit={limit}&offset={offset}";
         var response = await httpClient.GetFromJsonAsync<List<NetworkTag>>(requestUrl) ??
                        throw new HttpRequestException("Failed to fetch tags");
-        return ToTags(response) ?? [];
+        return ToTags(response);
+    }
+
+    public async Task<RadioStation?> GetStationByUuid(string uuid)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl =
+            $"{baseUrl}json/stations/byuuid?uuids={uuid}";
+
+        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
+                       throw new HttpRequestException("Failed to fetch stations");
+        return ToRadioStations(response).FirstOrDefault();
     }
 
     private List<Tag> ToTags(List<NetworkTag> response)

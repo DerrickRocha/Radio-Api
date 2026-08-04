@@ -37,4 +37,10 @@ public class RadioController(IRadioService service) : ControllerBase
     {
         return Ok(await service.GetStationsSearch(name, language, tag, limit, offset));
     }
+
+    [HttpGet("stations/uuid/{uuid}")]
+    public async Task<IActionResult> GetStationByUuid(string uuid)
+    {
+        return Ok(await service.GetStationByUuid(uuid));
+    }
 }
