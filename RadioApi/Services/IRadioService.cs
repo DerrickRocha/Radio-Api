@@ -12,7 +12,7 @@ public interface IRadioService
     public Task<List<RadioStation>> GetStationsSearch(string name = "", string language = "", string tag = "",
         int limit = 20, int offset = 0);
 
-    public Task<List<Tag>> GetAllTags(int limit, int offset);
+    public Task<List<Tag>> GetAllTags(int limit = 20, int offset = 0);
     
     public Task<RadioStation?> GetStationByUuid(string uuid);
 }
@@ -23,6 +23,66 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
     private static readonly SemaphoreSlim CacheLock = new(1, 1);
 
 
+    public async Task<List<RadioStation>> GetStationsByTag(string tag, int limit = 20, int offset = 0)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl =
+            $"{baseUrl}json/stations/bytag/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&order=clickcount&reverse=true&hidebroken=true";
+
+        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
+                       throw new HttpRequestException("Failed to fetch stations from radio-browser API");
+        return ToRadioStations(response);
+    }
+
+    public async Task<List<RadioStation>> GetStationsSearch(string name = "", string language = "", string tag = "",
+        int limit = 20, int offset = 0)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl =
+            $"{baseUrl}json/stations/search?name={name}&tag={tag}&language={language}&limit={limit}&offset={offset}&order=clickcount&reverse=true&hidebroken=true";
+
+        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
+                       throw new HttpRequestException("Failed to fetch stations");
+        return ToRadioStations(response);
+    }
+
+    public async Task<List<Tag>> GetAllTags(int limit = 20, int offset = 0)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl = $"{baseUrl}json/tags?limit={limit}&offset={offset}&hidebroken=true";
+        var response = await httpClient.GetFromJsonAsync<List<NetworkTag>>(requestUrl) ??
+                       throw new HttpRequestException("Failed to fetch tags");
+        return ToTags(response);
+    }
+
+    public async Task<RadioStation?> GetStationByUuid(string uuid)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl =
+            $"{baseUrl}json/stations/byuuid?uuids={uuid}";
+
+        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
+                       throw new HttpRequestException("Failed to fetch stations");
+        return ToRadioStations(response).FirstOrDefault();
+    }
+
+    private List<Tag> ToTags(List<NetworkTag> response)
+    {
+        var tags = response.Select(networkTag =>
+            new Tag(networkTag.Name, networkTag.StationCount)
+        );
+        return [.. tags];
+    }
+
+    private List<RadioStation> ToRadioStations(List<NetworkRadioStation> stations)
+    {
+        return
+        [
+            .. stations.Select(station => new RadioStation(station.StationUuid, station.Name, station.UrlResolved,
+                station.Favicon, station.Tags, station.Bitrate))
+        ];
+    }
+    
     private async Task<string> ResolveBaseUrlAsync()
     {
         if (cache.TryGetValue(MirrorCacheKey, out string? cachedUrl) && cachedUrl != null)
@@ -61,66 +121,5 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
         }
 
         return "https://radio-browser.info";
-    }
-
-
-    public async Task<List<RadioStation>> GetStationsByTag(string tag, int limit = 20, int offset = 0)
-    {
-        var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl =
-            $"{baseUrl}json/stations/bytag/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&order=clickcount&reverse=true";
-
-        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
-                       throw new HttpRequestException("Failed to fetch stations from radio-browser API");
-        return ToRadioStations(response);
-    }
-
-    public async Task<List<RadioStation>> GetStationsSearch(string name = "", string language = "", string tag = "",
-        int limit = 20, int offset = 0)
-    {
-        var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl =
-            $"{baseUrl}json/stations/search?name={name}&tag={tag}&language={language}&limit={limit}&offset={offset}&order=clickcount&reverse=true";
-
-        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
-                       throw new HttpRequestException("Failed to fetch stations");
-        return ToRadioStations(response);
-    }
-
-    public async Task<List<Tag>> GetAllTags(int limit, int offset)
-    {
-        var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl = $"{baseUrl}json/tags?limit={limit}&offset={offset}";
-        var response = await httpClient.GetFromJsonAsync<List<NetworkTag>>(requestUrl) ??
-                       throw new HttpRequestException("Failed to fetch tags");
-        return ToTags(response);
-    }
-
-    public async Task<RadioStation?> GetStationByUuid(string uuid)
-    {
-        var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl =
-            $"{baseUrl}json/stations/byuuid?uuids={uuid}";
-
-        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ??
-                       throw new HttpRequestException("Failed to fetch stations");
-        return ToRadioStations(response).FirstOrDefault();
-    }
-
-    private List<Tag> ToTags(List<NetworkTag> response)
-    {
-        var tags = response.Select(networkTag =>
-            new Tag(networkTag.Name, networkTag.StationCount)
-        );
-        return [.. tags];
-    }
-
-    private List<RadioStation> ToRadioStations(List<NetworkRadioStation> stations)
-    {
-        return
-        [
-            .. stations.Select(station => new RadioStation(station.StationUuid, station.Name, station.UrlResolved,
-                station.Favicon, station.Tags, station.Bitrate))
-        ];
     }
 }

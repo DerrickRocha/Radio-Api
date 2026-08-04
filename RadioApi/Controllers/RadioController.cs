@@ -20,7 +20,7 @@ public class RadioController(IRadioService service) : ControllerBase
 
     [HttpGet("tags/all")]
     public async Task<IActionResult> GetAllTags(
-        [FromQuery, Range(1, 500)] int limit = 100,
+        [FromQuery, Range(1, 500)] int limit = 20,
         [FromQuery, Range(0, int.MaxValue)] int offset = 0)
     {
         return Ok(await service.GetAllTags(limit, offset));
