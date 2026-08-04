@@ -8,7 +8,7 @@ namespace RadioApi.Services;
 
 public interface IRadioService
 {
-    public Task<List<RadioStation>> GetByGenre(string genre, int limit, int offset);
+    public Task<List<RadioStation>> GetStationsByTag(string tag, int limit, int offset);
     public Task<List<Tag>> GetAllTags(int limit, int offset);
 }
 
@@ -46,10 +46,10 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache): IRadioServ
     }
 
     
-    public async Task<List<RadioStation>> GetByGenre(string genre, int limit = 20, int offset = 0)
+    public async Task<List<RadioStation>> GetStationsByTag(string tag, int limit = 20, int offset = 0)
     {
         var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl = $"{baseUrl}json/stations/bytag/{Uri.EscapeDataString(genre)}?limit={limit}&offset={offset}&order=clickcount&reverse=true";
+        var requestUrl = $"{baseUrl}json/stations/bytag/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&order=clickcount&reverse=true";
 
         // Optional custom backend mapping logic can go here (e.g., stripping invalid http images)
         var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ?? throw new Exception("Failed to fetch stations");
