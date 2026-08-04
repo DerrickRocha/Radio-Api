@@ -1,3 +1,4 @@
+using RadioApi.Middleware;
 using RadioApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddHttpClient<IRadioService, RadioService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<RadioApiExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
