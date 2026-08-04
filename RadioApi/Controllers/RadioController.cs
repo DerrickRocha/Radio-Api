@@ -22,12 +22,12 @@ public class RadioController(IRadioService service) : ControllerBase
     [HttpGet("stations/search")]
     public async Task<IActionResult> GetStations(
         [FromQuery] string tag = "",
-        [FromQuery] string nameExact = "",
+        [FromQuery] string name = "",
         [FromQuery] string country = "",
         [FromQuery] int limit = 20,
         [FromQuery] int offset = 0
     )
     {
-        return Ok();
+        return Ok(await service.GetStationsSearch(name, country, tag, limit, offset));
     }
 }

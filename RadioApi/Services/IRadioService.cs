@@ -1,5 +1,4 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using RadioApi.Models;
 using RadioApi.Network;
@@ -9,6 +8,8 @@ namespace RadioApi.Services;
 public interface IRadioService
 {
     public Task<List<RadioStation>> GetStationsByTag(string tag, int limit, int offset);
+    
+    public Task<List<RadioStation>> GetStationsSearch(string name = "", string country = "", string tag = "", int limit = 20, int offset = 0);
     public Task<List<Tag>> GetAllTags(int limit, int offset);
 }
 
@@ -50,6 +51,16 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache): IRadioServ
     {
         var baseUrl = await ResolveBaseUrlAsync();
         var requestUrl = $"{baseUrl}json/stations/bytag/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&order=clickcount&reverse=true";
+
+        // Optional custom backend mapping logic can go here (e.g., stripping invalid http images)
+        var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ?? throw new Exception("Failed to fetch stations");
+        return ToRadioStations(response) ?? [];
+    }
+
+    public async Task<List<RadioStation>> GetStationsSearch(string name = "", string language = "", string tag = "", int limit = 20, int offset = 0)
+    {
+        var baseUrl = await ResolveBaseUrlAsync();
+        var requestUrl = $"{baseUrl}json/stations/search?name={name}&tag={tag}&language={language}&limit={limit}&offset={offset}&order=clickcount&reverse=true";
 
         // Optional custom backend mapping logic can go here (e.g., stripping invalid http images)
         var response = await httpClient.GetFromJsonAsync<List<NetworkRadioStation>>(requestUrl) ?? throw new Exception("Failed to fetch stations");

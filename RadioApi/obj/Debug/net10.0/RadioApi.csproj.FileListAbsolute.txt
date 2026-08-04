@@ -31,3 +31,4 @@
 /Users/derrick/RiderProjects/RadioApi/RadioApi/obj/Debug/net10.0/RadioApi.pdb
 /Users/derrick/RiderProjects/RadioApi/RadioApi/obj/Debug/net10.0/RadioApi.genruntimeconfig.cache
 /Users/derrick/RiderProjects/RadioApi/RadioApi/obj/Debug/net10.0/ref/RadioApi.dll
+/Users/derrick/RiderProjects/RadioApi/RadioApi/obj/Debug/net10.0/RadioApi.sourcelink.json
