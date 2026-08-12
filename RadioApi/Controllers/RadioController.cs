@@ -8,7 +8,7 @@ namespace RadioApi.Controllers;
 [Route("[controller]")]
 public class RadioController(IRadioService service) : ControllerBase
 {
-  [HttpGet("stations/{tag}")]
+    [HttpGet("stations/{tag}")]
     public async Task<IActionResult> GetStationsByTag(
         string tag,
         [FromQuery, Range(1, 100)] int limit = 20,
@@ -22,6 +22,17 @@ public class RadioController(IRadioService service) : ControllerBase
         [FromQuery, Range(0, int.MaxValue)] int offset = 0)
     {
         return Ok(await service.GetAllTags(limit, offset));
+    }
+
+    [HttpGet("tags/search/{tag}")]
+    public async Task<IActionResult> SearchTags(
+        string tag,
+        [FromQuery, Range(1, 100)] int limit = 20,
+        [FromQuery, Range(0, int.MaxValue)] int offset = 0
+        )
+    {
+        var tags = await service.GetTagsSearch(tag, limit, offset);
+        return Ok(tags);
     }
 
     [HttpGet("stations/search")]
