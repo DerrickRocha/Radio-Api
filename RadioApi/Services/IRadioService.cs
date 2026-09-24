@@ -13,7 +13,7 @@ public interface IRadioService
         int limit = 20, int offset = 0);
 
     public Task<List<Tag>> GetAllTags(int limit = 20, int offset = 0);
-    
+
     public Task<RadioStation?> GetStationByUuid(string uuid);
     Task<List<Tag>> GetTagsSearch(string tag, int limit, int offset);
 }
@@ -70,7 +70,8 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
     public async Task<List<Tag>> GetTagsSearch(string tag, int limit, int offset)
     {
         var baseUrl = await ResolveBaseUrlAsync();
-        var requestUrl = $"{baseUrl}json/tags/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&hidebroken=true";
+        var requestUrl =
+            $"{baseUrl}json/tags/{Uri.EscapeDataString(tag)}?limit={limit}&offset={offset}&hidebroken=true";
         var response = await httpClient.GetFromJsonAsync<List<NetworkTag>>(requestUrl) ??
                        throw new HttpRequestException("Failed to fetch tags");
         return ToTags(response);
@@ -88,11 +89,24 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
     {
         return
         [
-            .. stations.Select(station => new RadioStation(station.StationUuid, station.Name, station.UrlResolved,
-                station.Favicon, station.Tags, station.Bitrate))
+            .. stations
+                .GroupBy(s => string.IsNullOrWhiteSpace(s.HomePage)
+                        ? s.StationUuid // unique key, so blanks never merge
+                        : s.HomePage,
+                    StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.OrderByDescending(s => s.Bitrate).First())
+                .Select(station => new RadioStation(
+                        station.StationUuid, station.Name,
+                        station.UrlResolved,
+                        station.HomePage,
+                        station.Favicon,
+                        station.Tags,
+                        station.Bitrate
+                    )
+                )
         ];
     }
-    
+
     private async Task<string> ResolveBaseUrlAsync()
     {
         if (cache.TryGetValue(MirrorCacheKey, out string? cachedUrl) && cachedUrl != null)
