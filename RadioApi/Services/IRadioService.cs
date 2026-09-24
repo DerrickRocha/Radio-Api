@@ -91,7 +91,7 @@ public class RadioService(HttpClient httpClient, IMemoryCache cache) : IRadioSer
         [
             .. stations
                 .GroupBy(s => string.IsNullOrWhiteSpace(s.HomePage)
-                        ? s.StationUuid 
+                        ? s.StationUuid // unique key, so blanks never merge
                         : s.HomePage,
                     StringComparer.OrdinalIgnoreCase)
                 .Select(g => g.OrderByDescending(s => s.Bitrate).First())
